@@ -51,7 +51,7 @@ func getCompletions() async throws -> OpenAICompletionResponse {
 
 ### Curious about what `OpenAICompletionResponse` looks like?
 ```swift
-public struct OpenAICompletionResponse: Codable {
+struct OpenAICompletionResponse: Codable {
     let id: String
     let object: String
     let created: Int
@@ -60,20 +60,20 @@ public struct OpenAICompletionResponse: Codable {
     let choices: [Choice]
 }
 
-public struct Usage: Codable {
+struct Usage: Codable {
     let prompt_tokens: Int
     let completion_tokens: Int
     let total_tokens: Int
 }
 
-public struct Choice: Codable {
+struct Choice: Codable {
     let text: String
     let index: Int
     let logprobs: Logprobs?
     let finish_reason: String
 }
 
-public struct Logprobs: Codable {
+struct Logprobs: Codable {
     let tokens: [String]
     let token_logprobs: [Double]
     let top_logprobs: [[String: Double]]
