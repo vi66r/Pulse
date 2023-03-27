@@ -43,6 +43,7 @@ func getWeather() async throws -> WeatherResponse {
 }
 ```
 
+[_Wanna see something cool?_](https://github.com/vi66r/Pulse/blob/main/open-ai-example.md)
 
 Made with ❤️ from NY.
 
