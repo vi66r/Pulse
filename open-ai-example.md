@@ -38,13 +38,13 @@ extension Endpoint {
 ### Running your request:
 Where `OpenAICompletionResponse` is a `Codable` matching the shape of your data:
 ```swift
-func getWeather() async throws -> OpenAICompletionResponse {
+func getCompletions() async throws -> OpenAICompletionResponse {
     try await Networker.execute(.completions(for: "Long long ago, in a galaxy, far far away"))
 }
 ```
 Alternatively:
 ```swift
-func getWeather() async throws -> WeatherResponse { 
+func getCompletions() async throws -> OpenAICompletionResponse { 
     try await Endpoint.completions(for: "Long long ago, in a galaxy, far far away").run()
 }
 ```
