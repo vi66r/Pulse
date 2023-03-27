@@ -5,7 +5,7 @@ Since the activities of OpenAI are poppin' right now, here's an example of how y
 
 ## Basic Example:
 
-### Setting up the API with parameter authentication:
+### Setting up the API with bearer authentication:
 ```swift
 extension API {
         static var openAI: API {
