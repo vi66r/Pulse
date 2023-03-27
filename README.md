@@ -2,7 +2,7 @@
 
 A very tiny networking library that allows you to rapidly build APIs, and run network requests with minimal groundwork.
 
-_very random fun fact: this library was named by GPT-3.5-turbo" 
+_very random fact: this library was named by GPT-3.5-turbo_ 
 
 ## Basic Example:
 
