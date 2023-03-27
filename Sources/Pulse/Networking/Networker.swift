@@ -154,6 +154,63 @@ public struct Networker {
             }.resume()
         }
     }
+    
+    public static func stream<T: Decodable>(from endpoint: Endpoint) -> AsyncStream<Result<T, Error>> {
+        return stream(from: endpoint.request())
+    }
+
+    public static func stream<T: Decodable>(from request: URLRequest, customPredicate: ((T) -> Bool)? = nil) -> AsyncStream<Result<T, Error>> {
+        
+        return AsyncStream<Result<T, Error>> { continuation in
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    continuation.yield(.failure(error))
+                    continuation.finish()
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse,
+                      (200...299).contains(httpResponse.statusCode),
+                      let data = data else {
+                    continuation.yield(.failure(NetworkError.noDataOrBadResponse))
+                    continuation.finish()
+                    return
+                }
+                
+                do {
+                    let result = try JSONDecoder().decode(T.self, from: data)
+                    guard let customPredicate = customPredicate else {
+                        continuation.yield(.success(result))
+                        return
+                    }
+                    guard customPredicate(result) else {
+                        let error = NetworkErrorVerbose(request: request, underlyingError: NetworkError.customPreconditionFailure)
+                        Networker.log(error: error, category: "")
+                        continuation.yield(.failure(error))
+                        continuation.finish()
+                        return
+                    }
+                    continuation.yield(.success(result))
+                } catch let error {
+                    print(error)
+                    let coreNetworkingError = NetworkErrorVerbose(
+                        request: request,
+                        underlyingError: error,
+                        responseDataAsString: data.debugPrintAsJSON
+                    )
+                    
+                    Networker.log(error: coreNetworkingError, category: "")
+                    continuation.yield(.failure(error))
+                    continuation.finish()
+                }
+            }
+            task.resume()
+            
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
+            }
+        }
+    }
 }
 
 public extension Networker {
