@@ -7,7 +7,7 @@ _very random fun fact: this library was named by GPT-3.5-turbo"
 ## Basic Example:
 
 ### Setting up an API with parameter authentication:
-```
+```swift
 extension API {
         static var weather: API {
             var api = API("https://api.weatherapi.com/v1/current.json")
@@ -22,7 +22,7 @@ You can also use `.header` or `.bearer` for the `authenticationStyle`. The latte
 
 ### Creating an endpoint for that API:
 
-```
+```swift
 extension Endpoint {
     static func getWeather(for location: String) -> Endpoint { Endpoint(.weather, "?q=\(location)") }
 }
@@ -31,13 +31,13 @@ You can also use `static vars` for this, assuming you don't have an input parame
 
 ### Running your request:
 Where `WeatherResponse` is a `Codable` matching the shape of your data:
-```
+```swift
 func getWeather() async throws -> WeatherResponse { 
     try await Networker.execute(.getWeather(for: "new york"))
 }
 ```
 Alternatively:
-```
+```swift
 func getWeather() async throws -> WeatherResponse { 
     try await Endpoint.getWeather(for: "new york").run()
 }
