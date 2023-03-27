@@ -39,13 +39,13 @@ extension Endpoint {
 Where `OpenAICompletionResponse` is a `Codable` matching the shape of your data:
 ```swift
 func getCompletions() async throws -> OpenAICompletionResponse {
-    try await Networker.execute(.completions(for: "Long long ago, in a galaxy, far far away"))
+    try await Networker.execute(.completions(for: "A long time ago in a galaxy far, far away...."))
 }
 ```
 Alternatively:
 ```swift
 func getCompletions() async throws -> OpenAICompletionResponse { 
-    try await Endpoint.completions(for: "Long long ago, in a galaxy, far far away").run()
+    try await Endpoint.completions(for: "A long time ago in a galaxy far, far away....").run()
 }
 ```
 
