@@ -45,6 +45,6 @@ func getWeather() async throws -> WeatherResponse {
 
 [_Wanna see something cool?_](https://github.com/vi66r/Pulse/blob/main/open-ai-example.md)
 
-Made with ❤️ from NY.
+Made with ❤️ on Long Island.
 
 <img src="https://img.icons8.com/tiny-color/512/twitter.png"  width="12" height="12"> [Connect?](https://twitter.com/definitelyrafi)
