@@ -1,6 +1,6 @@
 # Open AI Use Case
 
-3/27/23
+### 3/27/23
 Since the activities of OpenAI are poppin' right now, here's an example of how you'd link to the completions API.
 
 ## Basic Example:
