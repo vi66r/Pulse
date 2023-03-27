@@ -4,7 +4,7 @@ A very tiny networking library that allows you to rapidly build APIs, and run ne
 
 ## Basic Example:
 
-### Setting up an API with parameter authnetication:
+### Setting up an API with parameter authentication:
 
 ```
 extension API {
@@ -27,10 +27,11 @@ extension Endpoint {
 ```
 
 ### Running your request:
-Where `WeatherResponse` is a Codable matching the shape of your data:
+Where `WeatherResponse` is a `Codable` matching the shape of your data:
 ```
 func getWeather() async throws -> WeatherResponse { 
     try await Networker.execute(.getWeather(for: "new york"))
 }
 ```
 
+Made with ❤️ from NY.
