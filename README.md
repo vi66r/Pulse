@@ -7,7 +7,6 @@ _very random fun fact: this library was named by GPT-3.5-turbo"
 ## Basic Example:
 
 ### Setting up an API with parameter authentication:
-
 ```
 extension API {
         static var weather: API {
@@ -19,14 +18,16 @@ extension API {
         }
 }
 ```
+You can also use `.header` or `.bearer` for the `authenticationStyle`. The latter will automatically set up for a bearer token. This will cover most use cases unless the auth for the API you're trying to connect to requires some other sort of header key. 
 
-### Creating an endpoint from that API:
+### Creating an endpoint for that API:
 
 ```
 extension Endpoint {
     static func getWeather(for location: String) -> Endpoint { Endpoint(.weather, "?q=\(location)") }
 }
 ```
+You can also use `static vars` for this, assuming you don't have an input parameter. 
 
 ### Running your request:
 Where `WeatherResponse` is a `Codable` matching the shape of your data:
@@ -35,6 +36,13 @@ func getWeather() async throws -> WeatherResponse {
     try await Networker.execute(.getWeather(for: "new york"))
 }
 ```
+Alternatively:
+```
+func getWeather() async throws -> WeatherResponse { 
+    try await Endpoint.getWeather(for: "new york").run()
+}
+```
+
 
 Made with ❤️ from NY.
 

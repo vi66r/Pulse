@@ -226,7 +226,7 @@ public struct Endpoint: RawRepresentable, Equatable {
         return self
     }
     
-    func run<T: Decodable>() async throws -> T {
+    public func run<T: Decodable>() async throws -> T {
         return try await Networker.execute(self)
     }
 }
