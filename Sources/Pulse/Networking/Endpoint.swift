@@ -216,6 +216,16 @@ public struct Endpoint: RawRepresentable, Equatable {
         return self
     }
     
+    public mutating func addingQueryItems(_ queryItems: [URLQueryItem]) -> Endpoint {
+        guard let urlComponents = URLComponents(string: rawValue) else { return self }
+        var newComponents = urlComponents
+        newComponents.queryItems = (newComponents.queryItems ?? []) + queryItems
+        if let urlString = newComponents.url?.absoluteString {
+            self.rawValue = urlString
+        }
+        return self
+    }
+    
     func run<T: Decodable>() async throws -> T {
         return try await Networker.execute(self)
     }
