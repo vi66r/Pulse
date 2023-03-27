@@ -1,0 +1,36 @@
+# Pulse
+
+A very tiny networking library that allows you to rapidly build APIs, and run network requests with minimal groundwork.
+
+## Basic Example:
+
+### Setting up an API with parameter authnetication:
+
+```
+extension API {
+        static var weather: API {
+            var api = API("https://api.weatherapi.com/v1/current.json")
+            api.authenticationKeyName = "key"
+            api.authenticationStyle = .parameter
+            api.authenticationKeyValue = "your weather api key"
+            return api
+        }
+}
+```
+
+### Creating an endpoint from that API:
+
+```
+extension Endpoint {
+    static func getWeather(for location: String) -> Endpoint { Endpoint(.weather, "?q=\(location)") }
+}
+```
+
+### Running your request:
+Where `WeatherResponse` is a Codable matching the shape of your data:
+```
+func getWeather() async throws -> WeatherResponse { 
+    try await Networker.execute(.getWeather(for: "new york"))
+}
+```
+
