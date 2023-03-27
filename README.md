@@ -38,4 +38,4 @@ func getWeather() async throws -> WeatherResponse {
 
 Made with ❤️ from NY.
 
-[Connect?](https://twitter.com/definitelyrafi)<img src="https://img.icons8.com/tiny-color/512/twitter.png"  width="12" height="12">
+<img src="https://img.icons8.com/tiny-color/512/twitter.png"  width="12" height="12"> [Connect?](https://twitter.com/definitelyrafi)
