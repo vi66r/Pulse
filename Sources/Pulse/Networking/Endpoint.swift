@@ -118,6 +118,7 @@ public struct Endpoint: RawRepresentable, Equatable {
     public var method: URLRequest.Method
     public var timeout: TimeInterval = 30
     public var cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+    public var contentType: ContentType = .formUrlencoded
     
     public init(_ base: API,
                 _ rawValue: String,
@@ -152,6 +153,8 @@ public struct Endpoint: RawRepresentable, Equatable {
     
     public func multipartRequest(body: [String : String?] = [:], uploadItemName: String = "file", mimeType: String = "img/png", filename: String = "file") -> URLRequest {
         var request: URLRequest
+        var headers = headers
+        headers["Content-Type"] = contentType.rawValue
         request = .multipartRequest(url: url,
                                     method: .post,
                                     cachePolicy: cachePolicy,
@@ -178,6 +181,9 @@ public struct Endpoint: RawRepresentable, Equatable {
             targetURL = url
         }
         
+        var headers = headers
+        headers["Content-Type"] = contentType.rawValue
+
         switch self {
         default:
             request = .authenticatedRequest(url: targetURL,
@@ -213,6 +219,11 @@ public struct Endpoint: RawRepresentable, Equatable {
     
     public mutating func with(_ cachePolicy: URLRequest.CachePolicy) -> Endpoint {
         self.cachePolicy = cachePolicy
+        return self
+    }
+    
+    public mutating func setting(contentType: ContentType) -> Endpoint {
+        self.contentType = contentType
         return self
     }
     
