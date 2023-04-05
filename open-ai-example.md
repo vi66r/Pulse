@@ -21,16 +21,22 @@ extension API {
 
 ```swift
 extension Endpoint {
-    static func completions(for prompt: String, maxTokens: Int = 500, temperature: Float = 0.5, topP: Float = 1.0) -> Endpoint {
-        let path = "/v1/engines/davinci-codex/completions?"
-        let queryItems = [
-            URLQueryItem(name: "prompt", value: prompt),
-            URLQueryItem(name: "max_tokens", value: "\(maxTokens)"),
-            URLQueryItem(name: "temperature", value: "\(temperature)"),
-            URLQueryItem(name: "top_p", value: "\(topP)")
-        ]
-        var endpoint = Endpoint(.openAI, path, method: .post)
-        return endpoint.addingQueryItems(queryItems)
+    static func completions(api: API, prompt: String, maxTokens: Int, temperature: Double, topP: Double) -> Endpoint {
+        let path = "/v1/completions?"
+        
+        let attachment = OpenAICompletionRequest(
+            model: "text-davinci-003",
+            prompt: prompt,
+            max_tokens: maxTokens,
+            temperature: temperature,
+            top_p: topP
+        )
+
+        let data = try! JSONEncoder().encode(attachment)
+        
+        var endpoint = Endpoint(api, path, method: .post, timeout: 300, attachment: data)
+        endpoint = endpoint.setting(contentType: .json)
+        return endpoint
     }
 }
 ```
