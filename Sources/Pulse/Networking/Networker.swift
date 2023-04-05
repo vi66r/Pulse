@@ -7,6 +7,7 @@ public enum NetworkError: Error {
     case customPreconditionFailure
     case noUser
     case backendError(underlying: BackendError)
+    case unexpectedResponse(response: String)
 }
 
 public struct BackendError: Decodable {
@@ -90,7 +91,7 @@ public struct Networker {
                     guard customPredicate(result) else {
                         let error = NetworkErrorVerbose(request: request, underlyingError: NetworkError.customPreconditionFailure)
                         Networker.log(error: error, category: "")
-                        continuation.resume(throwing: NetworkError.customPreconditionFailure)
+                        continuation.resume(throwing: error)
                         return
                     }
                     continuation.resume(returning: result)
@@ -109,7 +110,7 @@ public struct Networker {
                         return
                     }
                     
-                    continuation.resume(throwing: NetworkError.badDecode)
+                    continuation.resume(throwing: coreNetworkingError)
                 }
                 
             }.resume()
@@ -131,7 +132,7 @@ public struct Networker {
                 else {
                     let error = NetworkErrorVerbose(request: request, underlyingError: NetworkError.noDataOrBadResponse)
                     Networker.log(error: error, category: "")
-                    continuation.resume(throwing: NetworkError.noDataOrBadResponse)
+                    continuation.resume(throwing: error)
                     return
                     
                 }
@@ -141,7 +142,7 @@ public struct Networker {
                     } else {
                         let error = NetworkErrorVerbose(request: request, underlyingError: NetworkError.customPreconditionFailure)
                         Networker.log(error: error, category: "")
-                        continuation.resume(throwing: NetworkError.customPreconditionFailure)
+                        continuation.resume(throwing: error)
                     }
                 }
                 if let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) {
@@ -149,7 +150,7 @@ public struct Networker {
                 } else {
                     let error = NetworkErrorVerbose(request: request, underlyingError: NetworkError.noDataOrBadResponse)
                     Networker.log(error: error, category: "")
-                    continuation.resume(throwing: NetworkError.noDataOrBadResponse)
+                    continuation.resume(throwing: error)
                 }
             }.resume()
         }
