@@ -75,7 +75,7 @@ public struct API: RawRepresentable, Equatable {
     }
 }
 
-/// `Endpoint` is fundamentally designed to be used as a typed extensible `Enum`, while bypassing the traditional extesibility limitations of enumerations.
+/// `Endpoint` is fundamentally designed to be used as a typed extensible `Enum`, while bypassing the traditional extensibility limitations of enumerations.
 /// It requires an `API` value at initialization, to provide a base URL, and is meant to represent the various paths of said web API, however can also be used
 /// in conjunction with `API` to scope down to different endpoints. For instance, if you are building a social app, you might scope user profile endpoints to an
 /// `API` defined as the base URL representing all calls to `"https://myapp.com/profiles"`.
