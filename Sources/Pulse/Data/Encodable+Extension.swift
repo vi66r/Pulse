@@ -11,7 +11,7 @@ public extension Encodable {
             let jsonData = try encoder.encode(self)
             return String(data: jsonData, encoding: .utf8)
         } catch {
-            print("Error encoding JSON: \(error)")
+            print("🌐 PULSE: Error encoding JSON: \(error)")
             return nil
         }
     }

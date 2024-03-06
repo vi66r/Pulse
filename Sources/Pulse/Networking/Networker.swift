@@ -7,6 +7,7 @@ public enum NetworkError: Error {
     case customPreconditionFailure
     case noUser
     case backendError(underlying: BackendError)
+    case badRequest
     case unexpectedResponse(response: String)
 }
 
@@ -42,19 +43,54 @@ public class NetworkErrorVerbose: NSError {
     }
 }
 
+/// `Networker` is the central utility class for executing network requests related to the `WeatherUnderground` API or any other endpoints defined within the 
+/// system. It abstracts away the intricacies of HTTP communication, offering a straightforward and unified interface for making asynchronous network calls and
+/// handling responses efficiently.
+///
+/// ### Overview:
+/// By leveraging Swift's async/await paradigm, `Networker` simplifies sending HTTP requests, processing responses, and error management. It is designed to 
+/// work seamlessly with `Endpoint` configurations, enabling flexible and straightforward network request execution. The utility supports debugging, custom
+/// response validation, and handles a variety of network errors, providing comprehensive error information for robust error handling.
+///
+/// ### Functionality:
+/// - Asynchronously executes network requests, returning the response data decoded into a specified `Codable` type.
+/// - Allows for custom validation of the response data with predicate functions, offering the flexibility to incorporate additional checks as needed.
+/// - Includes debug printing for development support and easier troubleshooting of network activities.
+/// - Manages common network errors, returning detailed information to improve the error-handling process in the application.
+///
+/// ### Usage Example:
+/// For fetching weather data and decoding it into a custom model:
+/// ```swift
+/// // Using `Networker` with `Endpoint` for the WeatherUnderground API
+/// func fetchWeather(for location: String) async throws -> WeatherResponse {
+///     let endpoint = Endpoint.weather(for: location)
+///     return try await Networker.execute(endpoint)
+/// }
+///
+/// // Using `Networker` with custom predicate and debug printing enabled for additional validation and debugging
+/// func fetchWeatherWithValidation(for location: String) async throws -> WeatherResponse {
+///     let endpoint = Endpoint.weather(for: location)
+///     return try await Networker.execute(endpoint, customPredicate: { response in
+///         // Perform additional validation on the response
+///         return response.isValidWeatherData
+///     }, debugPrintingEnabled: true)
+/// }
+/// ```
+///
+/// `Networker`'s interface promotes ease of use and flexibility, allowing developers to efficiently manage network requests and focus on the application's logic 
+/// rather than the complexities of network programming.
+
 public struct Networker {
     
-    public static var debugPrintingEnabled = false
-    
-    public static func execute(_ endpoint: Endpoint, customPredicate: (() -> Bool)? = nil) async throws {
-        try await Networker.execute(request: endpoint.request(), customPredicate: customPredicate)
+    public static func execute(_ endpoint: Endpoint, customPredicate: (() -> Bool)? = nil, debugPrintingEnabled: Bool = false) async throws {
+        try await Networker.execute(request: endpoint.request(), customPredicate: customPredicate, debugPrintingEnabled: debugPrintingEnabled)
     }
     
-    public static func execute<T: Decodable>(_ endpoint: Endpoint, customPredicate: ((T) -> Bool)? = nil) async throws -> T {
-        return try await Networker.execute(request: endpoint.request(), customPredicate: customPredicate)
+    public static func execute<T: Decodable>(_ endpoint: Endpoint, customPredicate: ((T) -> Bool)? = nil, debugPrintingEnabled: Bool = false) async throws -> T {
+        return try await Networker.execute(request: endpoint.request(), customPredicate: customPredicate, debugPrintingEnabled: debugPrintingEnabled)
     }
     
-    public static func execute<T: Decodable>(request: URLRequest, customPredicate: ((T) -> Bool)? = nil) async throws -> T {
+    public static func execute<T: Decodable>(request: URLRequest, customPredicate: ((T) -> Bool)? = nil, debugPrintingEnabled: Bool = false) async throws -> T {
         return try await withCheckedThrowingContinuation { continuation in
             
             // check to see if the request is in the LRU cache and return early
@@ -64,12 +100,12 @@ public struct Networker {
             ) { data, response, error in
                 
                 if debugPrintingEnabled {
-                    print(data?.debugPrintAsJSON ?? "There was no data returned.")
+                    print("🌐 PULSE:", data?.debugPrintAsJSON ?? "There was no data returned.")
                 }
                 
                 if let error = error {
                     Networker.log(error: error, category: "")
-                    print(error)
+                    print("🌐 PULSE:", error)
                     continuation.resume(throwing: error)
                     return
                 } // log the error
@@ -96,7 +132,7 @@ public struct Networker {
                     }
                     continuation.resume(returning: result)
                 } catch let error {
-                    print(error)
+                    print("🌐 PULSE:", error)
                     let coreNetworkingError = NetworkErrorVerbose(
                         request: request,
                         underlyingError: error,
@@ -117,14 +153,14 @@ public struct Networker {
         }
     }
     
-    public static func execute(request: URLRequest, customPredicate: (() -> Bool)? = nil) async throws {
+    public static func execute(request: URLRequest, customPredicate: (() -> Bool)? = nil, debugPrintingEnabled: Bool = false) async throws {
         return try await withCheckedThrowingContinuation{ continuation in
             URLSession.shared.dataTask(with: request) { data, response, error in
                 if debugPrintingEnabled {
-                    print(data?.debugPrintAsJSON ?? "There was no data returned.")
+                    print("🌐 PULSE:", data?.debugPrintAsJSON ?? "There was no data returned.")
                 }
                 if let error = error {
-                    print(error)
+                    print("🌐 PULSE:", error)
                     continuation.resume(throwing: error)
                     return
                 } // log the error
@@ -153,63 +189,6 @@ public struct Networker {
                     continuation.resume(throwing: error)
                 }
             }.resume()
-        }
-    }
-    
-    public static func stream<T: Decodable>(from endpoint: Endpoint) -> AsyncStream<Result<T, Error>> {
-        return stream(from: endpoint.request())
-    }
-
-    public static func stream<T: Decodable>(from request: URLRequest, customPredicate: ((T) -> Bool)? = nil) -> AsyncStream<Result<T, Error>> {
-        
-        return AsyncStream<Result<T, Error>> { continuation in
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    continuation.yield(.failure(error))
-                    continuation.finish()
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      (200...299).contains(httpResponse.statusCode),
-                      let data = data else {
-                    continuation.yield(.failure(NetworkError.noDataOrBadResponse))
-                    continuation.finish()
-                    return
-                }
-                
-                do {
-                    let result = try JSONDecoder().decode(T.self, from: data)
-                    guard let customPredicate = customPredicate else {
-                        continuation.yield(.success(result))
-                        return
-                    }
-                    guard customPredicate(result) else {
-                        let error = NetworkErrorVerbose(request: request, underlyingError: NetworkError.customPreconditionFailure)
-                        Networker.log(error: error, category: "")
-                        continuation.yield(.failure(error))
-                        continuation.finish()
-                        return
-                    }
-                    continuation.yield(.success(result))
-                } catch let error {
-                    print(error)
-                    let coreNetworkingError = NetworkErrorVerbose(
-                        request: request,
-                        underlyingError: error,
-                        responseDataAsString: data.debugPrintAsJSON
-                    )
-                    
-                    Networker.log(error: coreNetworkingError, category: "")
-                    continuation.yield(.failure(error))
-                    continuation.finish()
-                }
-            }
-            task.resume()
-            
-            continuation.onTermination = { @Sendable _ in
-                task.cancel()
-            }
         }
     }
 }

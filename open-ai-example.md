@@ -1,5 +1,7 @@
 # Open AI Use Case
 
+### Last updated: 3/6/24 - not entirely accurate right now ⚠️
+
 ### 3/27/23
 Since the activities of OpenAI are poppin' right now, here's an example of how you'd link to the completions API.
 
@@ -17,32 +19,65 @@ extension API {
 }
 ```
 
-### Creating an endpoint for completions:
+### Creating an endpoint for chat:
 
 ```swift
 extension Endpoint {
-    static func completions(api: API, prompt: String, maxTokens: Int, temperature: Double, topP: Double) -> Endpoint {
-        let path = "/v1/completions?"
+    static func chatCompletions(api: API, requestModel: OpenAIChatRequest) -> Endpoint {
+        let path = "/v1/chat/completions"
+        let data = try! JSONEncoder().encode(requestModel)
         
-        let attachment = OpenAICompletionRequest(
-            model: "text-davinci-003",
-            prompt: prompt,
-            max_tokens: maxTokens,
-            temperature: temperature,
-            top_p: topP
-        )
-
-        let data = try! JSONEncoder().encode(attachment)
-        
-        var endpoint = Endpoint(api, path, method: .post, timeout: 300, attachment: data)
+        var endpoint = Endpoint(api, path, method: .post, attachment: data)
         endpoint = endpoint.setting(contentType: .json)
         return endpoint
     }
 }
 ```
 
-### Running your request:
-Where `OpenAICompletionResponse` is a `Codable` matching the shape of your data:
+### Running Your Streaming Request
+
+Implement a parser conforming to `StreamParser` to interpret the streamed data chunks.
+
+#### Example StreamParser for OpenAI Completion Responses
+
+```swift
+struct OpenAIStreamParser: StreamParser {
+    func parse(data: Data) throws -> [OpenAICompletionResponse] {
+        // Parsing logic to handle streamed JSON data
+        let decoder = JSONDecoder()
+        let response = try decoder.decode([OpenAICompletionResponse].self, from: data)
+        return response
+    }
+    
+    func isStreamComplete(data: Data) -> Bool {
+        // Logic to determine if the streaming is complete
+        return false
+    }
+}
+```
+
+#### Executing the Streaming Request
+
+```swift
+func getChatCompletionsStreaming(requestModel: OpenAIChatRequest) async {
+    let endpoint = Endpoint.chatCompletions(api: .openAI, requestModel: requestModel)
+    let parser = OpenAIChatResponseParser() // Assuming you've implemented this parser
+
+    let stream = Networker.stream(from: endpoint, using: parser)
+
+    for await result in stream {
+        switch result {
+        case .success(let chatResponse):
+            print("Received chat response: \(chatResponse)")
+        case .failure(let error):
+            print("Error: \(error.localizedDescription)")
+        }
+    }
+}
+```
+
+### Running your Completions request:
+Where `OpenAICompletionResponse` is a `Codable` matching the shape of your data, assuming you've set up a compoetions endpoint:
 ```swift
 func getCompletions() async throws -> OpenAICompletionResponse {
     try await Networker.execute(.completions(for: "A long time ago in a galaxy far, far away...."))
