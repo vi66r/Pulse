@@ -17,13 +17,12 @@ extension API {
     static var weather: API {
         var api = API("https://api.weatherapi.com/v1/current.json")
         api.authenticationKeyName = "key"
-        api.authenticationStyle = .parameter
+        api.authenticationStyle = .parameter // also supports .bearer, .header, and .none
         api.authenticationKeyValue = "your weather api key"
         return api
     }
 }
 ```
-Use `.header` or `.bearer` for `authenticationStyle` based on your needs. `.bearer` is the go-to for bearer token setups. We've got most auth scenarios covered.
 
 ### Creating an Endpoint for Weather:
 ```swift
