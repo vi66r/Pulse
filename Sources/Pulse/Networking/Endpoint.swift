@@ -220,7 +220,7 @@ public struct Endpoint: RawRepresentable, Equatable {
     public func multipartRequest(body: [String : String?] = [:], uploadItemName: String = "file", mimeType: String = "img/png", filename: String = "file") -> URLRequest {
         var request: URLRequest
         var headers = headers
-        headers["Content-Type"] = ContentType.multipartFormData.rawValue
+//        headers["Content-Type"] = ContentType.formUrlencoded.rawValue
         request = .multipartRequest(url: url,
                                     method: .post,
                                     cachePolicy: cachePolicy,
